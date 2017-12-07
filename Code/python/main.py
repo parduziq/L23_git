@@ -1,5 +1,4 @@
 import os
-
 from params import *
 from runSim import runSim
 from spiketrain import *
@@ -10,7 +9,7 @@ import numpy as np
 
 
 #Import sampled data from 3-way-copula
-dat = io.loadmat('/Users/qendresa/Desktop/L23/Code/matlab/sampledata.mat')
+dat = io.loadmat('/Users/qendresa/Dokumente/sampledata.mat')
 sample = np.array(dat['X'])  # 1.EPSP, 2. RC, 3.STP
 
 
@@ -18,13 +17,14 @@ sample = np.array(dat['X'])  # 1.EPSP, 2. RC, 3.STP
 corr = [0.1, 0.3, 0.5, 0.7, 0.9]
 
 n_inputs = np.linspace(50,500, 6).astype(int)
-#noneurons = np.linspace(200,2000, 6).astype(int)
-timebins = [1, 2]
 Freq = np.linspace(0.001, 0.015, 8)
 avgspike = np.zeros ((len(n_inputs), len(Freq)))
 numRuns = 100
 
-path = "/Users/qendresa/Desktop/L23/Simulation/Sim_Frq_nn_correct"
+datestr = time.strftime("%d_%m_%Y-%H%_M")
+timestr = time.strftime("%H_%M")
+
+path = "/Users/qendresa/Desktop/L23/Simulation/Freq_ninputs_%s"%datestr
 if not os.path.exists(path):
     os.makedirs(path)
 
@@ -52,7 +52,6 @@ for j in xrange(numRuns):
 
             #plt.show()
 
-
             t_runSim_0 = time.time()
             v,t,s = runSim(p, inputs, rank.astype(int))
             t_runSim_1 = time.time()
@@ -77,7 +76,7 @@ for j in xrange(numRuns):
     plt.title("Avg spike count after %d runs" % (j + 1))
     plt.xlabel("Frequency [Hz]")
     plt.ylabel("Number of Inputs")
-    plt.savefig(path + '/avgCount_%d.png' % j)
+    plt.savefig(path + '/avgCount_%d_%s.png' %j%timestr)
     plt.close()
     t_rest_1 = time.time()
     print("Generate/Save images:", t_rest_1 - t_rest_0)

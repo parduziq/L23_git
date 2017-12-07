@@ -1,5 +1,4 @@
 from swap import swap
-
 from neuron import h, gui
 import numpy as np
 import math

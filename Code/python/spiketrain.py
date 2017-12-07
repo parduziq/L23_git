@@ -1,7 +1,5 @@
 from scipy.stats import rankdata
-from CV_matrices import *
-import time
-from scipy import io
+import numpy as np
 
 def gentrain(p, ninputs, avg_display, H, div=1):
 
@@ -19,13 +17,14 @@ def gentrain(p, ninputs, avg_display, H, div=1):
 
     idx = 0
 
-    #sample randomly whole matrix
+    #sample randomly whole matrix  ## one diagonal
     #for i in xrange(ninputs):
         #d[(i+1):, i] = rc[idx: idx+ninputs-(i+1)] #lower triangular
      #   d[(i+1):, i] = np.random.choice(rc, ninputs - (i + 1))  # upper triangular
      #   d[i, (i+1):] = np.random.choice(rc, ninputs-(i+1)) #upper triangular
      #   idx = idx+1
         #idx = idx+ abs(ninputs - (i+1))
+
     d = np.random.choice(rc, (ninputs, ninputs), replace=False)
     c = np.dot(d, d.T)
 
