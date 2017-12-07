@@ -101,4 +101,4 @@ def runSim(p, inputs, rank):
     h.tstop = p.len
     h.run()
 
-    return np.asarray(v_soma), np.asarray(t), np.asarray(outVec)
+    return np.asarray(v_soma), np.asarray(t), np.asarray(outVec), PPR_samp, EPSP

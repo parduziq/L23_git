@@ -32,31 +32,23 @@ def gentrain(p, ninputs, avg_display, H, div=1):
 
     #uniform_c = np.ones((ninputs, ninputs))/ 1000000000000
     corrSum = np.sum(c, axis = 0)
+    RC = np.mean(c, axis = 0)
     rank = rankdata(corrSum) - 1
 
 
     #generate spike trains
     T = 1000/div
-    #t_sample_0 = time.time()
     rateMat = np.random.multivariate_normal(np.ones(ninputs)*H, c/100000000000, T)
-
-    #t_sample_1 = time.time()
-    #rateMat2 = np.repeat(rateMat, div, axis = 0)
-
-    #print("Generate Ratematrix", t_sample_1-t_sample_0)
-    #t_spike_0 = time.time()
     spikeMat = np.random.poisson(rateMat.T)
     s = (spikeMat != 0).astype(int)
 
-    #t_spike_1 = time.time()
-    #print("Generate spike matrix", t_spike_1-t_spike_0)
 
     # check average firing rates
     if avg_display == 0:
      avg = np.sum(s, axis=1)
      print( 'Sum of spikes:', avg, 'Mean firing rate:', np.mean(avg))
 
-    return s, rank
+    return s, rank, RC
 
 
 

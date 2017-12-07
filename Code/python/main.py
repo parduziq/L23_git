@@ -13,70 +13,62 @@ dat = io.loadmat('/Users/qendresa/Dokumente/sampledata.mat')
 sample = np.array(dat['X'])  # 1.EPSP, 2. RC, 3.STP
 
 
-#Parameter input for the simulations
-corr = [0.1, 0.3, 0.5, 0.7, 0.9]
-
-n_inputs = np.linspace(50,500, 6).astype(int)
-Freq = np.linspace(0.001, 0.015, 8)
-avgspike = np.zeros ((len(n_inputs), len(Freq)))
-numRuns = 100
-
 datestr = time.strftime("%d_%m_%Y-%H%_M")
 timestr = time.strftime("%H_%M")
 
-path = "/Users/qendresa/Desktop/L23/Simulation/Freq_ninputs_%s"%datestr
+path = "/Users/qendresa/Desktop/L23/Simulation/Syn_dynamics_%s"%datestr
 if not os.path.exists(path):
     os.makedirs(path)
 
-for j in xrange(numRuns):
-    spikeCount = []
-    for k in np.nditer(n_inputs):
-        for i in np.nditer(Freq):
-            p = params(sample, k, 0.8)
 
-            #t_spike_0 = time.time()
-            data, rank = gentrain(p, p.nInputs, 1, i, 1)
-            #t_spike_1 = time.time()
-            #print("Generate spike_trains:", t_spike_1 - t_spike_0)
+#Parameter input for the simulations
+n_inputs = 400
+Freq = 0.005
+numRuns = 100
 
-            inputs = [np.where(l == 1)[0] for l in data]
+p = params(sample, n_inputs, 0.8)
+data, rank, RC = gentrain(p, p.nInputs, 1, Freq, 1)
+inputs = [np.where(l == 1)[0] for l in data]
+v,t,s, PPR, EPSP = runSim(p, inputs, rank.astype(int))
 
-            #fig = plt.figure()
-            #plt.subplot(121)
-            #plt.eventplot(inputs1)
-            #plt.xlim(0, 1000)
-            #plt.ylim(1, p.nInputs * p.nSyn)
-            #plt.subplot(122)
-            #plt.eventplot(inputs)
-            #plt.xlim(0, 1000)
+act_EPSP=[]
+act_RC=[]
+act_PPR =[]
 
-            #plt.show()
-
-            t_runSim_0 = time.time()
-            v,t,s = runSim(p, inputs, rank.astype(int))
-            t_runSim_1 = time.time()
-            print("Simulation time:", t_runSim_1-t_runSim_0)
-
-            spikeCount.append(len(s))
+for i in range(len(s)):
+    before = int(s[i] - 10) # 10ms before spike
+    stim = int(s[i]+1)
+    sub_mat = data[:, before:stim] #extract spike mat
+    act_idx = np.where(sub_mat[:,:]==1)[0] #find active inputs
+    act_RC.append(RC[act_idx])
+    act_EPSP.append((EPSP[act_idx]))
+    act_PPR.append(PPR[act_idx])
 
 
-    t_rest_0 = time.time()
-    avgspike = avgspike + np.asarray(spikeCount, dtype=float).reshape((len(n_inputs),len(Freq)))
-      # print("updated count:", avgspike)
-    print("avgd count:", (avgspike / (j + 1)))
-    plt.figure()
-    im = plt.imshow(avgspike / (j + 1), cmap='hot')
-    ax = plt.gca()
-    ax.set_xticks(np.arange(len(Freq)))
-    ax.set_yticks((np.arange(len(n_inputs))))
-    ax.set_xticklabels(np.array(Freq) * 1000)
-    ax.set_yticklabels(np.array(n_inputs))
-    ax.grid(which='minor', color='w', linestyle='-', linewidth=2)
-    plt.colorbar()
-    plt.title("Avg spike count after %d runs" % (j + 1))
-    plt.xlabel("Frequency [Hz]")
-    plt.ylabel("Number of Inputs")
-    plt.savefig(path + '/avgCount_%d-%s.png' %(j,timestr))
-    plt.close()
-    t_rest_1 = time.time()
-    print("Generate/Save images:", t_rest_1 - t_rest_0)
+
+# Plot Output Trace with spike Matrix and distribution of parameters
+plt.figure(1)
+plt.subplot(3,1,1)
+plt.hist(act_RC)
+plt.title("active RC-values")
+
+plt.subplot(3,1,2)
+plt.hist(act_EPSP)
+plt.title("active EPSP-values")
+
+plt.subplot(3,1,3)
+plt.hist(act_PPR)
+plt.title("active PPR")
+plt.tight_layout()
+
+
+
+plt.figure(2)
+plt.subplot(2,1,1)
+plt.plot(t,v)
+plt.ylim([-80, 40])
+
+plt.subplot(2,1,2)
+plt.eventplot(inputs)
+plt.xlim([0,1000])
+plt.show()
