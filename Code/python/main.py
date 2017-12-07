@@ -13,7 +13,7 @@ dat = io.loadmat('/Users/qendresa/Dokumente/sampledata.mat')
 sample = np.array(dat['X'])  # 1.EPSP, 2. RC, 3.STP
 
 
-datestr = time.strftime("%d_%m_%Y-%H%_M")
+datestr = time.strftime("%d_%m_%Y")
 timestr = time.strftime("%H_%M")
 
 path = "/Users/qendresa/Desktop/L23/Simulation/Syn_dynamics_%s"%datestr
@@ -27,7 +27,7 @@ Freq = 0.005
 p = params(sample, ninputs, 0.8)
 
 
-numRuns = 10
+numRuns = 100
 globalEPSP = []
 globalRC = []
 globalPPR = []
@@ -69,6 +69,7 @@ plt.subplot(3,1,3)
 plt.hist(globalPPR)
 plt.title("active PPR")
 plt.tight_layout()
+plt.savefig(path + '/Hist_%dRuns.png' %numRuns)
 
 
 
@@ -80,7 +81,6 @@ plt.ylim([-80, 40])
 plt.subplot(2,1,2)
 plt.eventplot(inputs)
 plt.xlim([0,1000])
-plt.show()
+#plt.savefig(path + '/lastRun_%d.png'%numRuns)
 
-plt.savefig(path + )
-plt.savefig(2, "Last_output")
+plt.show()
