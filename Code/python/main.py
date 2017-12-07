@@ -76,7 +76,7 @@ for j in xrange(numRuns):
     plt.title("Avg spike count after %d runs" % (j + 1))
     plt.xlabel("Frequency [Hz]")
     plt.ylabel("Number of Inputs")
-    plt.savefig(path + '/avgCount_%d_%s.png' %j%timestr)
+    plt.savefig(path + '/avgCount_%d-%s.png' %(j,timestr))
     plt.close()
     t_rest_1 = time.time()
     print("Generate/Save images:", t_rest_1 - t_rest_0)
