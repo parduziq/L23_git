@@ -21,43 +21,52 @@ if not os.path.exists(path):
     os.makedirs(path)
 
 
-#Parameter input for the simulations
-n_inputs = 400
+#Parameter input for the simulations & init Neuron
+ninputs = 500
 Freq = 0.005
-numRuns = 100
+p = params(sample, ninputs, 0.8)
 
-p = params(sample, n_inputs, 0.8)
-data, rank, RC = gentrain(p, p.nInputs, 1, Freq, 1)
-inputs = [np.where(l == 1)[0] for l in data]
-v,t,s, PPR, EPSP = runSim(p, inputs, rank.astype(int))
 
-act_EPSP=[]
-act_RC=[]
-act_PPR =[]
+numRuns = 10
+globalEPSP = []
+globalRC = []
+globalPPR = []
 
-for i in range(len(s)):
-    before = int(s[i] - 10) # 10ms before spike
-    stim = int(s[i]+1)
-    sub_mat = data[:, before:stim] #extract spike mat
-    act_idx = np.where(sub_mat[:,:]==1)[0] #find active inputs
-    act_RC.append(RC[act_idx])
-    act_EPSP.append((EPSP[act_idx]))
-    act_PPR.append(PPR[act_idx])
+for i in range(numRuns):
+    data, rank, RC = gentrain(p, p.nInputs, 1, Freq, 1)
+    inputs = [np.where(l == 1)[0] for l in data]
+    v,t,s, PPR, EPSP = runSim(p, inputs, rank.astype(int))
+    activeEPSP=[]
+    activeRC=[]
+    activePPR =[]
+
+    for i in range(len(s)):
+        before = int(s[i] - 10) # 10ms before spike
+        stim = int(s[i]+1)
+        sub_mat = data[:, before:stim] #extract spike mat
+        activeIdx = np.where(sub_mat[:,:]==1)[0] #find active inputs
+        activeRC.append(RC[activeIdx])
+        activeEPSP.append((EPSP[activeIdx]*1000))
+        activePPR.append(PPR[activeIdx])
+
+    globalEPSP.extend(activeEPSP)
+    globalPPR.extend(activePPR)
+    globalRC.extend(activeRC)
 
 
 
 # Plot Output Trace with spike Matrix and distribution of parameters
 plt.figure(1)
 plt.subplot(3,1,1)
-plt.hist(act_RC)
+plt.hist(globalRC)
 plt.title("active RC-values")
 
 plt.subplot(3,1,2)
-plt.hist(act_EPSP)
+plt.hist(globalEPSP)
 plt.title("active EPSP-values")
 
 plt.subplot(3,1,3)
-plt.hist(act_PPR)
+plt.hist(globalPPR)
 plt.title("active PPR")
 plt.tight_layout()
 
@@ -72,3 +81,6 @@ plt.subplot(2,1,2)
 plt.eventplot(inputs)
 plt.xlim([0,1000])
 plt.show()
+
+plt.savefig(path + )
+plt.savefig(2, "Last_output")
