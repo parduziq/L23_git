@@ -51,4 +51,26 @@ def gentrain(p, ninputs, avg_display, H, div=1):
     return s, rank, RC
 
 
+"""
 
+d2 = np.diag(v)
+for i in range(ninputs):
+    d2[(i+1):, i] = np.random.choice(rc, ninputs-(i+1))
+c2 = abs(d2 + np.tril(d2, k= -1).T)
+corrSum2 = np.sum(c2, axis = 0)
+#c2 = c2**2
+
+fig2 = plt.figure(figsize=(4,6))
+plt.subplot(2,1,1)
+plt.imshow(c2, cmap = "afmhot")
+plt.title('Columnwise correlation of inputs')
+plt.colorbar()
+
+plt.subplot(2,1,2)
+plt.hist(corrSum2, bins=ninputs/10)
+plt.title('Distribution of correlation-sum')
+plt.xlabel('Sum of correlation')
+fig2.tight_layout()
+
+plt.show()
+"""
