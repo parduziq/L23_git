@@ -49,7 +49,6 @@ def vanRossum(x,y,tau):
     # show()
     return d
 
-
 def normCC(x,y,tau):
 
     spikeIdx = np.where(x == 1)[0]

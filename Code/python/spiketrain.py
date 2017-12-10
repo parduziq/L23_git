@@ -1,7 +1,7 @@
 from scipy.stats import rankdata
 import numpy as np
 
-def gentrain(p, ninputs, avg_display, H, div=1):
+def gentrain(p, ninputs, avg_display, H, c):
 
     #dat = io.loadmat('/Users/qendresa/Desktop/L23/Code/sampledata.mat')
     #sample = np.array(dat['X'])
@@ -25,8 +25,7 @@ def gentrain(p, ninputs, avg_display, H, div=1):
      #   idx = idx+1
         #idx = idx+ abs(ninputs - (i+1))
 
-    d = np.random.choice(rc, (ninputs, ninputs), replace=False)
-    c = np.dot(d, d.T)
+
 
 
 
@@ -37,7 +36,7 @@ def gentrain(p, ninputs, avg_display, H, div=1):
 
 
     #generate spike trains
-    T = 1000/div
+    T = 1000
     rateMat = np.random.multivariate_normal(np.ones(ninputs)*H, c/100000000000, T)
     spikeMat = np.random.poisson(rateMat.T)
     s = (spikeMat != 0).astype(int)
