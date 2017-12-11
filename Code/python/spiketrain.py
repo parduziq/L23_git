@@ -42,7 +42,7 @@ def gentrain(p, ninputs, avg_display, H, c):
      avg = np.sum(s, axis=1)
      print( 'Sum of spikes:', avg, 'Mean firing rate:', np.mean(avg))
 
-    return s, rank, RC
+    return s, rank, RC, corrSum
 
 
 """

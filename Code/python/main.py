@@ -20,7 +20,7 @@ sample = np.array(dat['X'])  # 1.EPSP, 2. RC, 3.STP
 datestr = time.strftime("%d_%m_%Y")
 timestr = time.strftime("%H_%M")
 
-path = "/Users/qendresa/Desktop/L23/Simulation/Syn_dynamics_2_%s"%datestr
+path = "/Users/qendresa/Desktop/L23/Simulation/Syn_dynamics_new_%s"%datestr
 if not os.path.exists(path):
     os.makedirs(path)
 
@@ -37,12 +37,26 @@ c = np.random.choice(p.RC*100, (ninputs, ninputs))
 g = np.cov(c)
 
 
+
 corr = np.zeros((ninputs, ninputs))
 for i in range(ninputs):
     for j in range(i, ninputs):
         corr[i, j] =g[i,j]/ math.sqrt(g[i,i]* g[j,j])
 i_lower = np.tril_indices(ninputs, -1)
 corr[i_lower] = corr.T[i_lower]
+
+binwidth = 0.1
+plt.figure()
+plt.subplot(211)
+plt.hist(g.flatten(), bins=np.arange(min(g.flatten()), max(g.flatten()) + binwidth, binwidth))
+plt.title("Covariance matrix input")
+
+plt.subplot(212)
+binwidth = 0.02
+plt.hist(corr.flatten(), bins=np.arange(min(corr.flatten()), max(corr.flatten()) + binwidth, binwidth))
+plt.title("Correlation matrix input")
+plt.tight_layout()
+plt.savefig(path+"/CoVCoRmatrix.png")
 
 
 plt.figure()
@@ -59,7 +73,7 @@ plt.title("Correlation matrix")
 plt.savefig(path + '/CovCor.png')
 
 
-numRuns = 200
+numRuns = 5
 globalEPSP = []
 globalRC = []
 globalPPR = []
@@ -70,7 +84,7 @@ VRD_avgcount = np.zeros((ninputs, ninputs))
 Frobeniusnorm = []
 
 for n in range(numRuns):
-    data, rank, RC = gentrain(p, p.nInputs, 1, Freq, g)
+    data, rank, RC, covSum = gentrain(p, p.nInputs, 1, Freq, g)
     spikes = np.copy(data)
     inputs = [np.where(l == 1)[0] for l in data]
     v,t,s, PPR, EPSP = runSim(p, inputs, rank.astype(int))
@@ -127,49 +141,87 @@ for n in range(numRuns):
         globalPPR.extend(activePPR)
         globalRC.extend(activeRC)
 
-
-        for i, k in enumerate(globactiveIdx):
+        #all vRd with respect to output
+        for k in range(ninputs):
             d = vanRossum(outspike[0,:], data[k],tau).tolist()
             final_RC[idx] = d
             idx = idx+1
 
 
-    if (n!=0 and n%10 == 0) :
+    if ((len(s) >0 and n>0)):
         print("Frobenius difference: ", Frobeniusnorm)
         print("count nonzeros in RC:", np.count_nonzero(final_RC))
 
         plt.figure()
+        binwidth = 0.02
         plt.subplot(411)
-        plt.hist(norm_VRD.flatten())
-        plt.title("All normlized RC Values based on vR-distance")
+        max_edge= max(norm_VRD.flatten())
+        min_edge = min(norm_VRD.flatten())
+        N = (max_edge - min_edge) / binwidth + 1;
+        bin_list = np.linspace(min_edge, max_edge , N)
+        plt.hist(norm_VRD.flatten(), bins=bin_list)
+        plt.title("All normlized vR-distances")
+
         plt.subplot(412)
-        plt.hist(norm_VRD[i,:])
-        plt.title("Random output and their RC values")
+        max_edge= max(norm_VRD[i,:])
+        min_edge = min(norm_VRD[i,:])
+        N = (max_edge - min_edge) / binwidth + 1;
+        bin_list = np.linspace(min_edge, max_edge , N)
+        plt.hist(norm_VRD[i,:], bins=bin_list)
+        plt.title("Random output and their vR values")
+
         plt.subplot(413)
-        plt.hist(norm_VRD[n,:])
-        plt.title("Random output and their RC values")
+        max_edge= max(norm_VRD[n,:])
+        min_edge = min(norm_VRD[n,:])
+        N = (max_edge - min_edge) / binwidth + 1;
+        bin_list = np.linspace(min_edge, max_edge , N)
+        plt.hist(norm_VRD[n,:], bins=bin_list)
+        plt.title("Random output and their vR values")
+
         plt.subplot(414)
-        plt.hist(np.random.choice(norm_VRD.flatten(), 1500))
-        plt.title("Randomly sampled RC values (pairwise data)")
+        pairwise = np.random.choice(norm_VRD.flatten(), 1500)
+        max_edge= max(pairwise)
+        min_edge = min(pairwise)
+        N = (max_edge - min_edge) / binwidth + 1;
+        bin_list = np.linspace(min_edge, max_edge , N)
+        plt.hist(pairwise, bins=bin_list)
+        plt.title("Randomly sampled vR values (pairwise data)")
         plt.tight_layout()
-        plt.savefig(path + "/RCvalues_%d.png"%(n+1))
+        plt.savefig(path + "/vRvalues_%d.png"%(n+1))
 
         plt.figure(0)
         plt.plot(np.arange(len(Frobeniusnorm)), Frobeniusnorm)
         plt.title("Forbenius norm of difference matrix (corr - VRD)")
         plt.savefig(path + "/Frob_%d.png"%(n+1))
 
+
         plt.figure(1)
+
+        binwidth = 10
         plt.subplot(3,1,1)
-        plt.hist(globalRC)
-        plt.title("active RC-values")
+        max_edge= max(covSum)
+        min_edge = min(covSum)
+        N = (max_edge - min_edge) / binwidth + 1;
+        bin_list = np.linspace(min_edge, max_edge , N)
+        plt.hist(covSum, bins=bin_list)
+        plt.title("coVSum values")
 
         plt.subplot(3,1,2)
-        plt.hist(globalEPSP)
+        binwidth = 0.1
+        max_edge= max(globalEPSP)
+        min_edge = min(globalEPSP)
+        N = (max_edge - min_edge) / binwidth + 1;
+        bin_list = np.linspace(min_edge, max_edge , N)
+        plt.hist(globalEPSP, bins=bin_list)
         plt.title("active EPSP-values")
 
         plt.subplot(3,1,3)
-        plt.hist(globalPPR)
+        binwidth = 0.05
+        max_edge= max(globalPPR)
+        min_edge = min(globalPPR)
+        N = (max_edge - min_edge) / binwidth + 1;
+        bin_list = np.linspace(min_edge, max_edge , N)
+        plt.hist(globalPPR, bins=bin_list)
         plt.title("active PPR")
         plt.tight_layout()
         plt.savefig(path + '/Hist_%dRuns.png' %(n+1))
@@ -178,9 +230,12 @@ for n in range(numRuns):
         nzRC = final_RC[np.nonzero(final_RC)]
         norm_RC = np.ones(nzRC.shape) - nzRC/np.amax(nzRC)
         np.save(path+"/outRC", norm_RC)
-        plt.hist(norm_RC)
-        plt.title("RC distribution in output neuron")
-        plt.savefig(path+ "/RC_distribution_%d.png"%(n+1))
+        print("X-y, shape:", norm_RC[n*ninputs:(n*ninputs+ninputs)].shape, covSum.shape)
+        plt.scatter(norm_RC[n*ninputs:(n*ninputs+ninputs)], covSum)
+        plt.xlabel("similarity-measure (vRd)")
+        plt.ylabel("impact in covariance matrix")
+        plt.title("Similarity of in & output spiketrain vs. Correlationinput")
+        plt.savefig(path+ "/Scatter_%d.png"%(n+1))
 
 #plt.show()
 
