@@ -11,11 +11,6 @@ def gentrain(p, ninputs, avg_display, H, c):
     #div =1
     #H=0.005
 
-    rc = p.RC
-    v = np.ones(ninputs)
-    d = np.diag(v)
-
-    idx = 0
 
     #sample randomly whole matrix  ## one diagonal
     #for i in xrange(ninputs):
@@ -37,7 +32,7 @@ def gentrain(p, ninputs, avg_display, H, c):
 
     #generate spike trains
     T = 1000
-    rateMat = np.random.multivariate_normal(np.ones(ninputs)*H, c/100000000000, T)
+    rateMat = np.random.multivariate_normal(np.ones(ninputs)*H, c/100000000, T)
     spikeMat = np.random.poisson(rateMat.T)
     s = (spikeMat != 0).astype(int)
 
