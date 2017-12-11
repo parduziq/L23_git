@@ -20,7 +20,7 @@ sample = np.array(dat['X'])  # 1.EPSP, 2. RC, 3.STP
 datestr = time.strftime("%d_%m_%Y")
 timestr = time.strftime("%H_%M")
 
-path = "/Users/qendresa/Desktop/L23/Simulation/Syn_dynamics_%s"%datestr
+path = "/Users/qendresa/Desktop/L23/Simulation/Syn_dynamics_2_%s"%datestr
 if not os.path.exists(path):
     os.makedirs(path)
 
@@ -59,7 +59,7 @@ plt.title("Correlation matrix")
 plt.savefig(path + '/CovCor.png')
 
 
-numRuns = 100
+numRuns = 200
 globalEPSP = []
 globalRC = []
 globalPPR = []
@@ -69,7 +69,7 @@ idx = 0
 VRD_avgcount = np.zeros((ninputs, ninputs))
 Frobeniusnorm = []
 
-for i in range(numRuns):
+for n in range(numRuns):
     data, rank, RC = gentrain(p, p.nInputs, 1, Freq, g)
     spikes = np.copy(data)
     inputs = [np.where(l == 1)[0] for l in data]
@@ -93,14 +93,15 @@ for i in range(numRuns):
     diff = corr - norm_VRD
     Frobeniusnorm.append(np.linalg.norm(diff))
 
-    if i==(numRuns-1):
+    if n==(numRuns-1):
         VRD_final = VRD_avgcount/np.amax(VRD_avgcount) # normalize it
-        VRD_final = 1 - VRD_final
+        VRD_final = np.ones(VRD_final.shape) - VRD_final
         plt.figure()
         im = plt.imshow(VRD_final, cmap='hot')
         plt.colorbar()
         plt.title("Final normalized vanRossum distance %d runs" % (i + 1))
         plt.savefig(path + '/VRD_final_%d_runs.png' % (i+1))
+
 
     #plt.savefig(path + '/VRD_%dRuns.png' %i)
     activeEPSP=[]
@@ -133,15 +134,30 @@ for i in range(numRuns):
             idx = idx+1
 
 
-
-    if i!=0 and numRuns%9 == 0:
+    if (n!=0 and n%10 == 0) :
         print("Frobenius difference: ", Frobeniusnorm)
         print("count nonzeros in RC:", np.count_nonzero(final_RC))
 
+        plt.figure()
+        plt.subplot(411)
+        plt.hist(norm_VRD.flatten())
+        plt.title("All normlized RC Values based on vR-distance")
+        plt.subplot(412)
+        plt.hist(norm_VRD[i,:])
+        plt.title("Random output and their RC values")
+        plt.subplot(413)
+        plt.hist(norm_VRD[n,:])
+        plt.title("Random output and their RC values")
+        plt.subplot(414)
+        plt.hist(np.random.choice(norm_VRD.flatten(), 1500))
+        plt.title("Randomly sampled RC values (pairwise data)")
+        plt.tight_layout()
+        plt.savefig(path + "/RCvalues_%d.png"%(n+1))
+
         plt.figure(0)
-        plt.plot(range(numRuns), Frobeniusnorm)
+        plt.plot(np.arange(len(Frobeniusnorm)), Frobeniusnorm)
         plt.title("Forbenius norm of difference matrix (corr - VRD)")
-        plt.savefig(path + "/Frob_%d.png"%(i+1))
+        plt.savefig(path + "/Frob_%d.png"%(n+1))
 
         plt.figure(1)
         plt.subplot(3,1,1)
@@ -156,15 +172,15 @@ for i in range(numRuns):
         plt.hist(globalPPR)
         plt.title("active PPR")
         plt.tight_layout()
-        plt.savefig(path + '/Hist_%dRuns.png' %(i+1))
+        plt.savefig(path + '/Hist_%dRuns.png' %(n+1))
 
         plt.figure()
         nzRC = final_RC[np.nonzero(final_RC)]
         norm_RC = np.ones(nzRC.shape) - nzRC/np.amax(nzRC)
         np.save(path+"/outRC", norm_RC)
         plt.hist(norm_RC)
-        plt.title("RC distribution of spiketrains")
-        plt.savefig(path+ "/RC_distribution_%d.png"%(i+1))
+        plt.title("RC distribution in output neuron")
+        plt.savefig(path+ "/RC_distribution_%d.png"%(n+1))
 
 #plt.show()
 
