@@ -20,7 +20,7 @@ sample = np.array(dat['X'])  # 1.EPSP, 2. RC, 3.STP
 datestr = time.strftime("%d_%m_%Y")
 timestr = time.strftime("%H_%M")
 
-path = "/Users/qendresa/Desktop/L23/Simulation/Syn_dynamics_new_%s"%datestr
+path = "/Users/qendresa/Desktop/L23/Simulation/Syn_dynamics_vRD2_%s"%datestr
 if not os.path.exists(path):
     os.makedirs(path)
 
@@ -73,7 +73,7 @@ plt.title("Correlation matrix")
 plt.savefig(path + '/CovCor.png')
 
 
-numRuns = 5
+numRuns = 150
 globalEPSP = []
 globalRC = []
 globalPPR = []
@@ -116,6 +116,13 @@ for n in range(numRuns):
         plt.title("Final normalized vanRossum distance %d runs" % (i + 1))
         plt.savefig(path + '/VRD_final_%d_runs.png' % (i+1))
 
+    plt.figure()
+    plt.scatter(np.tril(corr).flatten(), np.tril(norm_VRD).flatten())
+    plt.axis([-0.2, 0.2, 0.0, 1.0])
+    plt.xlabel("Input Correlation")
+    plt.ylabel("van Rossum distance")
+    plt.savefig(path + "/IC_vRD_%d.png"%(n+1))
+
 
     #plt.savefig(path + '/VRD_%dRuns.png' %i)
     activeEPSP=[]
@@ -148,7 +155,7 @@ for n in range(numRuns):
             idx = idx+1
 
 
-    if ((len(s) >0 and n>0)):
+    if ((len(s) >0 and n>1 and n%10 == 0)):
         print("Frobenius difference: ", Frobeniusnorm)
         print("count nonzeros in RC:", np.count_nonzero(final_RC))
 
@@ -226,16 +233,16 @@ for n in range(numRuns):
         plt.tight_layout()
         plt.savefig(path + '/Hist_%dRuns.png' %(n+1))
 
-        plt.figure()
-        nzRC = final_RC[np.nonzero(final_RC)]
-        norm_RC = np.ones(nzRC.shape) - nzRC/np.amax(nzRC)
-        np.save(path+"/outRC", norm_RC)
-        print("X-y, shape:", norm_RC[n*ninputs:(n*ninputs+ninputs)].shape, covSum.shape)
-        plt.scatter(norm_RC[n*ninputs:(n*ninputs+ninputs)], covSum)
-        plt.xlabel("similarity-measure (vRd)")
-        plt.ylabel("impact in covariance matrix")
-        plt.title("Similarity of in & output spiketrain vs. Correlationinput")
-        plt.savefig(path+ "/Scatter_%d.png"%(n+1))
+        # plt.figure()
+        # nzRC = final_RC[np.nonzero(final_RC)]
+        # norm_RC = np.ones(nzRC.shape) - nzRC/np.amax(nzRC)
+        # np.save(path+"/outRC", norm_RC)
+        # print("X-y, shape:", norm_RC[n*ninputs:(n*ninputs+ninputs)].shape, covSum.shape)
+        # plt.scatter(norm_RC[n*ninputs:(n*ninputs+ninputs)], covSum)
+        # plt.xlabel("similarity-measure (vRd)")
+        # plt.ylabel("impact in covariance matrix")
+        # plt.title("Similarity of in & output spiketrain vs. Correlationinput")
+        # plt.savefig(path+ "/Scatter_%d.png"%(n+1))
 
 #plt.show()
 
@@ -248,7 +255,6 @@ for n in range(numRuns):
 #ax.eventplot(inputs)
 #ax.set_xlim([0,1000])
 #plt.savefig(path + '/lastRun_%d.png'%numRuns)
-
 
 
 
